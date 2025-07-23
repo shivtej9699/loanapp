@@ -1,11 +1,10 @@
-package com.example.kssloanapp
+package com.example.kssloanapp.Screens.Login
 
-import androidx.compose.foundation.Image
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.CreditCard
@@ -19,15 +18,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+
 
 @Composable
-fun WelcomeScreen() {
+fun WelcomeScreen(navcontroller: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -84,7 +85,10 @@ fun WelcomeScreen() {
 
         // Get Started Button
         Button(
-            onClick = { /* TODO: Action */ },
+            onClick = {
+
+                navcontroller.navigate("login")
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 24.dp),
@@ -114,5 +118,5 @@ fun FeatureItem(title: String, subtitle: String, icon: ImageVector) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewWelcomeScreen() {
-    WelcomeScreen()
+    WelcomeScreen(navcontroller = rememberNavController())
 }
