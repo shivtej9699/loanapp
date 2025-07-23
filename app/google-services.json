@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "122502253212",
+    "firebase_url": "https://loan-application-633ef-default-rtdb.firebaseio.com",
+    "project_id": "loan-application-633ef",
+    "storage_bucket": "loan-application-633ef.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:122502253212:android:f82f3ed86ea5279d1c3b59",
+        "android_client_info": {
+          "package_name": "com.example.kssloanapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDAdDq48JWEp7PULPsomom0ME_TwbODQv8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:122502253212:android:f8ba80406c6394f61c3b59",
+        "android_client_info": {
+          "package_name": "com.example.loanapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDAdDq48JWEp7PULPsomom0ME_TwbODQv8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
