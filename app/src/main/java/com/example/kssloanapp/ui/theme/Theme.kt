@@ -9,10 +9,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-<<<<<<< HEAD
 import androidx.compose.ui.platform.LocalContext
-
-=======
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
@@ -45,8 +42,6 @@ fun KSSLoanAppTheme(
     )
 }
 
-
->>>>>>> a3c114c (first)
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,

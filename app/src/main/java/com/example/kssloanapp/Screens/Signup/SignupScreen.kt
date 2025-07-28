@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -40,95 +40,99 @@ fun SignUpScreen(navController: NavController) {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
 
+    val isDarkTheme = isSystemInDarkTheme()
+    val backgroundColor = if (isDarkTheme) Color(0xFF121212) else Color(0xFFE3F2FD)
+    val textColor = if (isDarkTheme) Color.White else Color.Black
+
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    var profileImageBase64 by remember { mutableStateOf("") }
-    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
-
-    val imagePickerLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.let {
-                bitmap = if (Build.VERSION.SDK_INT < 28) {
-                    MediaStore.Images.Media.getBitmap(context.contentResolver, it)
-                } else {
-                    val source = ImageDecoder.createSource(context.contentResolver, it)
-                    ImageDecoder.decodeBitmap(source)
-                }
-                // Convert bitmap to Base64
-                val stream = ByteArrayOutputStream()
-                bitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)
-                val byteArray = stream.toByteArray()
-                profileImageBase64 = Base64.encodeToString(byteArray, Base64.DEFAULT)
-            }
-        }
 
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var profileBase64 by remember { mutableStateOf<String?>(null) }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            imageUri = it
+            val bitmap = if (Build.VERSION.SDK_INT < 28) {
+                MediaStore.Images.Media.getBitmap(context.contentResolver, it)
+            } else {
+                val source = ImageDecoder.createSource(context.contentResolver, it)
+                ImageDecoder.decodeBitmap(source)
+            }
+            imageBitmap = bitmap
+
+            // Convert to Base64
+            val outputStream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            val byteArray = outputStream.toByteArray()
+            profileBase64 = Base64.encodeToString(byteArray, Base64.DEFAULT)
+        }
+    }
+
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFE3F2FD)),
+        modifier = Modifier.fillMaxSize().background(backgroundColor),
         contentAlignment = Alignment.Center
     ) {
         Card(
             modifier = Modifier.fillMaxWidth(0.9f),
             shape = RoundedCornerShape(16.dp),
             elevation = CardDefaults.cardElevation(6.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+            colors = CardDefaults.cardColors(containerColor = if (isDarkTheme) Color(0xFF1E1E1E) else Color.White)
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text("Create Account", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Text("Create Account", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = textColor)
 
-                // Profile Image Picker
+                // Profile Image
                 Box(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        .background(Color.Gray.copy(alpha = 0.2f))
-                        .clickable { imagePickerLauncher.launch("image/*") },
-                    contentAlignment = Alignment.Center
+                        .background(Color.Gray)
+                        .clickable { launcher.launch("image/*") }
                 ) {
-                    if (bitmap != null) {
-                        Image(bitmap = bitmap!!.asImageBitmap(), contentDescription = null, modifier = Modifier.fillMaxSize())
+                    if (imageBitmap != null) {
+                        Image(
+                            bitmap = imageBitmap!!.asImageBitmap(),
+                            contentDescription = "Profile Image",
+                            modifier = Modifier.fillMaxSize()
+                        )
                     } else {
-                        Text("Pick Image", fontSize = 12.sp)
+                        Text("Pick Image", color = Color.White, fontSize = 12.sp)
                     }
                 }
 
-                OutlinedTextField(value = firstName, onValueChange = { firstName = it }, label = { Text("First Name") }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = lastName, onValueChange = { lastName = it }, label = { Text("Last Name") }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = phoneNumber, onValueChange = { phoneNumber = it }, label = { Text("Phone Number") }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = password, onValueChange = { password = it }, label = { Text("Password") }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = confirmPassword, onValueChange = { confirmPassword = it }, label = { Text("Confirm Password") }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = firstName, onValueChange = { firstName = it }, label = { Text("First Name", color = textColor) }, modifier = Modifier.fillMaxWidth(), textStyle = LocalTextStyle.current.copy(color = textColor))
+                OutlinedTextField(value = lastName, onValueChange = { lastName = it }, label = { Text("Last Name", color = textColor) }, modifier = Modifier.fillMaxWidth(), textStyle = LocalTextStyle.current.copy(color = textColor))
+                OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email", color = textColor) }, modifier = Modifier.fillMaxWidth(), textStyle = LocalTextStyle.current.copy(color = textColor))
+                OutlinedTextField(value = phoneNumber, onValueChange = { phoneNumber = it }, label = { Text("Phone Number", color = textColor) }, modifier = Modifier.fillMaxWidth(), textStyle = LocalTextStyle.current.copy(color = textColor))
+                OutlinedTextField(value = password, onValueChange = { password = it }, label = { Text("Password", color = textColor) }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth(), textStyle = LocalTextStyle.current.copy(color = textColor))
+                OutlinedTextField(value = confirmPassword, onValueChange = { confirmPassword = it }, label = { Text("Confirm Password", color = textColor) }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth(), textStyle = LocalTextStyle.current.copy(color = textColor))
 
                 Button(
                     onClick = {
-
                         errorMessage = null
-
-                        if (firstName.isBlank() || lastName.isBlank() || email.isBlank() ||
-                            phoneNumber.isBlank() || password.isBlank() || confirmPassword.isBlank()
-                        ) {
+                        if (firstName.isBlank() || lastName.isBlank() || email.isBlank() || phoneNumber.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
                             Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
                             return@Button
                         }
-                        val isEmailValid = android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
-                        if (!isEmailValid) {
-                            Toast.makeText(
-                                context,
-                                "Please enter a valid email",
-                                Toast.LENGTH_SHORT
-                            ).show()
+
+                        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                            Toast.makeText(context, "Enter valid email", Toast.LENGTH_SHORT).show()
                             return@Button
                         }
 
@@ -150,7 +154,7 @@ fun SignUpScreen(navController: NavController) {
                                             lastName = lastName,
                                             emailid = email,
                                             phoneNumber = phoneNumber,
-                                            profileImage = profileImageBase64 // 🔥 save image
+                                            profileImage = profileBase64 ?: "" // base64 image string
                                         )
 
                                         FirebaseDatabase.getInstance().getReference("users")
@@ -163,7 +167,7 @@ fun SignUpScreen(navController: NavController) {
                                                 }
                                             }
                                             .addOnFailureListener {
-                                                Toast.makeText(context, "User data save failed", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(context, "User save failed", Toast.LENGTH_SHORT).show()
                                             }
                                     }
                                 } else {
@@ -178,15 +182,15 @@ fun SignUpScreen(navController: NavController) {
                     Text(if (isLoading) "Signing up..." else "Sign Up", color = Color.White)
                 }
 
-                Text("Already have an account? Log in", modifier = Modifier.clickable { navController.navigate("login") })
+                Text("Already have an account? Log in", modifier = Modifier.clickable { navController.navigate("login") }, color = Color(0xFF1976D2))
 
                 errorMessage?.let {
                     Text(text = it, color = Color.Red, fontWeight = FontWeight.SemiBold)
                 }
+
                 if (isLoading) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                 }
-
             }
         }
     }

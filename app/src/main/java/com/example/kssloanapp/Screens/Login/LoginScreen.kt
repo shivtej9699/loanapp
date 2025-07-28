@@ -3,6 +3,7 @@ package com.example.kssloanapp.Screens.Login
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -17,50 +18,42 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.kssloanapp.Models.Users
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun LoginScreen(navController: NavController) {
+    val context = LocalContext.current
+    val auth = FirebaseAuth.getInstance()
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
-    val context = LocalContext.current
-    val auth = FirebaseAuth.getInstance()
+    val isDarkTheme = isSystemInDarkTheme()
+    val backgroundColor = if (isDarkTheme) Color(0xFF121212) else Color(0xFFE3F2FD)
+    val textColor = if (isDarkTheme) Color.White else Color.Black
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFFEEF2F3), Color(0xFF8E9EAB))
-                )
-            ),
+            .background(backgroundColor),
         contentAlignment = Alignment.Center
     ) {
         Card(
-            modifier = Modifier
-                .padding(24.dp)
-                .fillMaxWidth(0.9f),
+            modifier = Modifier.fillMaxWidth(0.9f),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(8.dp)
+            elevation = CardDefaults.cardElevation(6.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = if (isDarkTheme) Color(0xFF1E1E1E) else Color.White
+            )
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(
-                    text = "Welcome Back!",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2C3E50)
-                )
+                Text("Welcome Back!", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = textColor)
 
                 OutlinedTextField(
                     value = email,
@@ -68,10 +61,10 @@ fun LoginScreen(navController: NavController) {
                         email = it
                         errorMessage = null
                     },
-                    label = { Text("Email") },
+                    label = { Text("Email", color = textColor) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    textStyle = LocalTextStyle.current.copy(color = textColor)
                 )
 
                 OutlinedTextField(
@@ -80,11 +73,11 @@ fun LoginScreen(navController: NavController) {
                         password = it
                         errorMessage = null
                     },
-                    label = { Text("Password") },
+                    label = { Text("Password", color = textColor) },
                     singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    visualTransformation = PasswordVisualTransformation()
+                    textStyle = LocalTextStyle.current.copy(color = textColor)
                 )
 
                 Button(
@@ -107,46 +100,27 @@ fun LoginScreen(navController: NavController) {
                                 }
                             }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(12.dp),
                     enabled = !isLoading,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C3E50))
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
                 ) {
-                    Text(
-                        text = if (isLoading) "Logging in..." else "Log In",
-                        color = Color.White,
-                        fontSize = 16.sp
-                    )
-
+                    Text(if (isLoading) "Logging in..." else "Log In", color = Color.White)
                 }
-                    if (isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-                    }
-
-
-                Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
                     text = "Don't have an account? Sign up",
-                    color = Color(0xFF1976D2),
-                    fontSize = 14.sp,
-                    modifier = Modifier.clickable {
-                        navController.navigate("SignupScreen")
-                    }
+                    modifier = Modifier.clickable { navController.navigate("SignupScreen") },
+                    color = Color(0xFF1976D2)
                 )
 
                 errorMessage?.let {
-                    Text(
-                        text = it,
-                        color = Color.Red,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
+                    Text(text = it, color = Color.Red, fontWeight = FontWeight.SemiBold)
+                }
+
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                 }
             }
         }
     }
 }
-

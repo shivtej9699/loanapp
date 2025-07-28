@@ -1,209 +1,260 @@
-<<<<<<< HEAD
 package com.example.kssloanapp.Screens.Profile
-=======
-package com.example.kssloanapp.Screens.Home
->>>>>>> a3c114c (first)
 
 import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-<<<<<<< HEAD
-=======
-import androidx.compose.ui.platform.LocalContext
->>>>>>> a3c114c (first)
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
-import com.example.kssloanapp.Models.Users
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import javax.inject.Inject
-import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
-
-<<<<<<< HEAD
-// 🔷 ViewModel
-=======
-
-
->>>>>>> a3c114c (first)
-@HiltViewModel
-class ProfileViewmodel @Inject constructor() : ViewModel() {
-
-    private val auth = FirebaseAuth.getInstance()
-    private val dbRef = FirebaseDatabase.getInstance().getReference("users")
-
-    private val _userData = MutableStateFlow<Users?>(null)
-    val userData = _userData.asStateFlow()
-    private val _loading = MutableStateFlow(false)
-    val loading = _loading.asStateFlow()
-
-    init {
-        fetchUserData()
-    }
-
-    fun fetchUserData() {
-        _loading.value = true
-        val uid = auth.currentUser?.uid
-        if (uid != null) {
-            dbRef.child(uid).get()
-                .addOnSuccessListener {
-                    _userData.value = it.getValue(Users::class.java)
-                    _loading.value = false
-                }
-                .addOnFailureListener {
-                    _userData.value = null
-                    _loading.value = false
-                }
-        } else {
-            // no logged-in user
-            _userData.value = null
-            _loading.value = false
-        }
-    }
-
-    fun logout() {
-        auth.signOut()
-        _userData.value = null
-    }
-}
-
-// 🔷 Composable Screen
+import com.google.firebase.database.*
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(
-    navController: NavController,
-    viewmodel: ProfileViewmodel = hiltViewModel()
-) {
-    val user by viewmodel.userData.collectAsState()
-    val loading by viewmodel.loading.collectAsState()
+fun ProfileScreen(navController: NavController) {
+    val user = FirebaseAuth.getInstance().currentUser
+    val uid = user?.uid
+    val dbFirestore = FirebaseFirestore.getInstance()
+    val dbRealtime = FirebaseDatabase.getInstance().reference
 
-    // Refresh user data whenever screen loads
-    LaunchedEffect(Unit) {
-        viewmodel.fetchUserData()
-    }
+    var name by remember { mutableStateOf("Loading...") }
+    var email by remember { mutableStateOf(user?.email ?: "") }
+    var profileImageBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    var totalForms by remember { mutableStateOf(0) }
+    var approvedForms by remember { mutableStateOf(0) }
+    var rejectedForms by remember { mutableStateOf(0) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    var showFullImage by remember { mutableStateOf(false) }
 
-    Scaffold(topBar = {
-        TopAppBar(title = { Text("My Profile") })
-    }) { padding ->
-        Box(
-            Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentAlignment = Alignment.Center
-        ) {
-            when {
-                loading -> CircularProgressIndicator()
-                user != null -> ProfileContent(user!!, onLogout = {
-                    viewmodel.logout()
-                    navController.navigate("Login") {
-                        popUpTo("Profile") { inclusive = true }
-                    }
-                })
-                else -> Text("No user data found. Please login/signup.")
+    var isLoading by remember { mutableStateOf(true) }
+
+    LaunchedEffect(uid) {
+        uid?.let {
+            try {
+                dbRealtime.child("users").child(uid)
+                    .addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            val firstName =
+                                snapshot.child("firstName").getValue(String::class.java) ?: ""
+                            val lastName =
+                                snapshot.child("lastName").getValue(String::class.java) ?: ""
+                            val profileBase64 =
+                                snapshot.child("profileImage").getValue(String::class.java)
+                            if (!profileBase64.isNullOrEmpty()) {
+                                try {
+                                    val byteArray = Base64.decode(profileBase64, Base64.DEFAULT)
+                                    profileImageBitmap =
+                                        BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                            name = if (firstName.isNotEmpty() || lastName.isNotEmpty()) {
+                                "$firstName $lastName"
+                            } else {
+                                "Unknown User"
+                            }
+                            isLoading = false
+                        }
+
+                        override fun onCancelled(error: DatabaseError) {
+                            name = "Unknown User"
+                            isLoading = false
+                        }
+                    })
+
+                val forms =
+                    dbFirestore.collection("loans").whereEqualTo("userId", uid).get().await()
+                totalForms = forms.size()
+                approvedForms = forms.count { it.getString("status") == "Approved" }
+                rejectedForms = forms.count { it.getString("status") == "Rejected" }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                name = "Unknown User"
+                isLoading = false
             }
         }
     }
-}
 
-@Composable
-fun ProfileContent(user: Users, onLogout: () -> Unit) {
-<<<<<<< HEAD
-=======
-    val context = LocalContext.current
-    val bitmap = try {
-        val byteArray = Base64.decode(user.profileImage, Base64.DEFAULT)
-        BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-    } catch (e: Exception) {
-        null
-    }
->>>>>>> a3c114c (first)
-    Column(
-        Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-<<<<<<< HEAD
-        if (user.profileImage.isNotEmpty()) {
-
-                val byteArray = Base64.decode(user.profileImage, Base64.DEFAULT)
-                val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-                Image(
-                    bitmap = bitmap.asImageBitmap(),
-                    contentDescription = "Profile Image",
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(CircleShape)
-                )
-                Spacer(Modifier.height(16.dp))
-            }
-=======
-
-//        // ✅ Show profile image or fallback
-//        val bitmap = try {
-//            val byteArray = Base64.decode(user.profileImage, Base64.DEFAULT)
-//            BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-//        } catch (e: Exception) {
-//            BitmapFactory.decodeResource(context.resources, R.drawable.defualt_profile) // <-- fallback image
-//        }
-
-        bitmap?.let {
-            Image(
-                bitmap = it.asImageBitmap(),
-                contentDescription = "Profile Image",
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text("My Profile", fontSize = 20.sp) })
+        }
+    ) { innerPadding ->
+        if (isLoading) {
+            Box(
                 modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp, vertical = 20.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (profileImageBitmap != null) {
+                        Image(
+                            bitmap = profileImageBitmap!!.asImageBitmap(),
+                            contentDescription = "Profile Image",
+                            modifier = Modifier
+                                .size(90.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer)
+                                .clickable { showFullImage = true }, // <-- click to enlarge
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(90.dp)
+                                .clip(CircleShape)
+                                .background(Color.Gray),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = name.firstOrNull()?.toString()?.uppercase() ?: "?",
+                                fontSize = 32.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column {
+                        Text(
+                            name.ifEmpty { "Unknown User" },
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(email, fontSize = 16.sp, color = Color.Gray)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(30.dp))
+
+                Text("Loan Stats", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    StatCard("Total", totalForms.toString(), Color(0xFF1976D2))
+                    StatCard("Approved", approvedForms.toString(), Color(0xFF388E3C))
+                    StatCard("Rejected", rejectedForms.toString(), Color(0xFFD32F2F))
+                }
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                Button(
+                    onClick = { showLogoutDialog = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Logout", color = Color.White)
+                }
+            }
+        }
+
+        if (showLogoutDialog) {
+            AlertDialog(
+                onDismissRequest = { showLogoutDialog = false },
+                title = { Text("Logout Confirmation") },
+                text = { Text("Are you sure you want to logout?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        FirebaseAuth.getInstance().signOut()
+                        navController.navigate("login") {
+                            popUpTo(0) { inclusive = true }
+                        }
+                        showLogoutDialog = false
+                    }) {
+                        Text("Logout")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showLogoutDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
             )
-            Spacer(Modifier.height(16.dp))
->>>>>>> a3c114c (first)
         }
 
-        val fullName = "${user.firstName.orEmpty()} ${user.lastName.orEmpty()}".trim().ifEmpty { "no name" }
-        ProfileItem("Name", fullName)
-        Spacer(Modifier.height(16.dp))
-        ProfileItem("Email", user.emailid.ifEmpty { "no email" })
-        Spacer(Modifier.height(16.dp))
-        ProfileItem("Mobile", user.phoneNumber.ifEmpty { "no number" })
-        Spacer(Modifier.height(32.dp))
+        // 🔍 Enlarged image dialog
+        // 🔍 Enlarged image popup (small square, center of screen)
+        if (showFullImage && profileImageBitmap != null) {
+            Dialog(onDismissRequest = { showFullImage = false }) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(280.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color.White)
+                ) {
+                    Image(
+                        bitmap = profileImageBitmap!!.asImageBitmap(),
+                        contentDescription = "Full Profile Image",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable { showFullImage = false },
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+        }
 
-<<<<<<< HEAD
-        Button(onClick = onLogout, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
-            Text("Logout", color = MaterialTheme.colorScheme.onError)
-        }
-    }
-=======
-        Button(
-            onClick = onLogout,
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-        ) {
-            Text("Logout", color = MaterialTheme.colorScheme.onError)
-        }
     }
 }
 
-
->>>>>>> a3c114c (first)
-
-
 @Composable
-fun ProfileItem(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
-        Text(value, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+fun StatCard(title: String, value: String, color: Color) {
+    Card(
+        modifier = Modifier
+            .width(100.dp)
+            .height(100.dp),
+        colors = CardDefaults.cardColors(containerColor = color),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text(title, fontSize = 14.sp, color = Color.White)
+        }
     }
 }

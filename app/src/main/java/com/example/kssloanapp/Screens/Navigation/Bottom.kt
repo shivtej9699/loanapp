@@ -1,10 +1,5 @@
 package com.example.kssloanapp.Screens.Navigation
 
-
-<<<<<<< HEAD
-=======
-import HomeScreen
->>>>>>> a3c114c (first)
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -22,15 +17,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
-<<<<<<< HEAD
 import com.example.kssloanapp.Models.NavItems
 import com.example.kssloanapp.Screens.Home.HomeScreen
+import com.example.kssloanapp.Screens.Loan.LoanFormListScreen
 import com.example.kssloanapp.Screens.Profile.ProfileScreen
-=======
-import androidx.navigation.NavHostController
-import com.example.kssloanapp.Models.NavItems
-import com.example.kssloanapp.Screens.Home.ProfileScreen
->>>>>>> a3c114c (first)
 
 
 @Composable
@@ -82,12 +72,8 @@ fun BottomNav(
 @Composable
 fun contentScreen(modifier: Modifier = Modifier, selectedIndex: Int, navController: NavController) {
     when(selectedIndex){
-<<<<<<< HEAD
         0 -> HomeScreen( navController = navController)
-=======
-        0 -> HomeScreen(navController = navController)
->>>>>>> a3c114c (first)
-//        1 -> SmokerForm()
+       1 -> LoanFormListScreen(navController= navController)
 //        2 -> DisadvantagesScreen()
         3 -> ProfileScreen(navController = navController)
 
