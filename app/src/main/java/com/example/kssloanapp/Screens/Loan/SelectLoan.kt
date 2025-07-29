@@ -22,28 +22,36 @@ import androidx.navigation.NavController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectLoanScreen(bankName: String, navController: NavController) {
+
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val onBackground = MaterialTheme.colorScheme.onBackground
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(backgroundColor)
             .verticalScroll(rememberScrollState())
     ) {
         TopAppBar(
-            title = { Text(bankName, color = Color.White) },
+            title = { Text(bankName, color = MaterialTheme.colorScheme.onPrimary) },
             navigationIcon = {
                 IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    Icon(
+                        Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF00695C))
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
         )
 
-        // Loan Cards
+        // Loan Cards - Fixed colors
         LoanCard(
             title = "Instant Personal Loans",
             subtitle = "Apply in minutes and get approved fast!",
-            backgroundColor = Color(0xFF0D47A1),
-            buttonTextColor = Color(0xFF0D47A1),
+            backgroundColor = Color(0xFF1976D2), // Blue
+            buttonTextColor = Color(0xFF1976D2),
             icon = Icons.Default.Bolt,
             loanType = "personal",
             navController = navController
@@ -52,7 +60,7 @@ fun SelectLoanScreen(bankName: String, navController: NavController) {
         LoanCard(
             title = "Gold Loan",
             subtitle = "Get loan against your gold with lowest interest.",
-            backgroundColor = Color(0xFFFBC02D),
+            backgroundColor = Color(0xFFFBC02D), // Yellow/Gold
             buttonTextColor = Color(0xFFFBC02D),
             icon = Icons.Default.AttachMoney,
             loanType = "gold",
@@ -62,17 +70,16 @@ fun SelectLoanScreen(bankName: String, navController: NavController) {
         LoanCard(
             title = "Home Loan",
             subtitle = "Buy your dream home with affordable EMIs.",
-            backgroundColor = Color(0xFF388E3C),
-            buttonTextColor = Color(0xFF388E3C),
+            backgroundColor = Color(0xFF43A047), // Green
+            buttonTextColor = Color(0xFF43A047),
             icon = Icons.Default.Home,
             loanType = "home",
             navController = navController
         )
 
-        // Why Choose Us
         Text(
             text = "Why Choose Us?",
-            color = Color.White,
+            color = onBackground,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(start = 16.dp, top = 20.dp)
@@ -81,26 +88,31 @@ fun SelectLoanScreen(bankName: String, navController: NavController) {
         FeatureItem(
             icon = Icons.Default.Bolt,
             title = "Quick Approval",
-            subtitle = "Get loans approved within minutes."
+            subtitle = "Get loans approved within minutes.",
+            textColor = onBackground
         )
 
         FeatureItem(
             icon = Icons.Default.Lock,
             title = "Secure & Safe",
-            subtitle = "Your data is 100% secure with us."
+            subtitle = "Your data is 100% secure with us.",
+            textColor = onBackground
         )
 
         FeatureItem(
             icon = Icons.Default.Phone,
             title = "24/7 Support",
-            subtitle = "We're always available to help."
+            subtitle = "We're always available to help.",
+            textColor = onBackground
         )
 
         FeatureItem(
             icon = Icons.Default.AttachMoney,
             title = "Low Interest Rates",
-            subtitle = "Get loans at the lowest interest rates."
+            subtitle = "Get loans at the lowest interest rates.",
+            textColor = onBackground
         )
+
         Spacer(modifier = Modifier.height(32.dp))
     }
 }
@@ -135,7 +147,12 @@ fun LoanCard(
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = title, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = title,
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
 
             Text(text = subtitle, color = Color.White, fontSize = 14.sp)
@@ -155,7 +172,7 @@ fun LoanCard(
 }
 
 @Composable
-fun FeatureItem(icon: ImageVector, title: String, subtitle: String) {
+fun FeatureItem(icon: ImageVector, title: String, subtitle: String, textColor: Color) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -165,13 +182,13 @@ fun FeatureItem(icon: ImageVector, title: String, subtitle: String) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Color(0xFF448AFF),
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(28.dp)
         )
         Spacer(modifier = Modifier.width(12.dp))
         Column {
-            Text(text = title, color = Color.White, fontWeight = FontWeight.SemiBold)
-            Text(text = subtitle, color = Color.Gray, fontSize = 13.sp)
+            Text(text = title, color = textColor, fontWeight = FontWeight.SemiBold)
+            Text(text = subtitle, color = textColor.copy(alpha = 0.6f), fontSize = 13.sp)
         }
     }
 }

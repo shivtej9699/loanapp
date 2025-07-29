@@ -59,7 +59,7 @@ fun HomeScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(8.dp)
                 .navigationBarsPadding()
                 .verticalScroll(rememberScrollState())
         ) {

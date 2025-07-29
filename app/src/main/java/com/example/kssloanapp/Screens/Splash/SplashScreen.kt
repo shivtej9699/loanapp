@@ -29,22 +29,17 @@ fun SplashScreen(navController: NavController) {
     LaunchedEffect(true) {
         delay(1000)
         val user = FirebaseAuth.getInstance().currentUser
-        user?.getIdToken(true)?.addOnCompleteListener { task ->
-            if (task.isSuccessful && task.result.token != null) {
-                navController.navigate("WelcomeScreen") {
-                    popUpTo("SplashScreen") { inclusive = true }
-                }
-            } else {
-                FirebaseAuth.getInstance().signOut()
-                navController.navigate("WelcomeScreen") {
-                    popUpTo("SplashScreen") { inclusive = true }
-                }
+
+        if (user != null) {
+            navController.navigate("Bottom") {
+                popUpTo("splashScreen") { inclusive = true }
             }
-        } ?: run {
-            navController.navigate("WelcomeScreen") {
-                popUpTo("SplashScreen") { inclusive = true }
+        } else {
+            navController.navigate("login") {
+                popUpTo("splashScreen") { inclusive = true }
             }
         }
+
     }
 
     Box(

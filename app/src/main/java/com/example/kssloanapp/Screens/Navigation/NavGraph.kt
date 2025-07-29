@@ -9,6 +9,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.kssloanapp.Screens.ChatBot.ChatScreen
 import com.example.kssloanapp.Screens.FromStatus.EMIRepaymentScreen
 import com.example.kssloanapp.Screens.FromStatus.LoanStatusScreen
 import com.example.kssloanapp.Screens.Home.HomeScreen
@@ -23,18 +24,14 @@ import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun NavGraph(navController: NavHostController) {
 
-    val user = FirebaseAuth.getInstance().currentUser
-    val start = if(user != null) "Bottom" else "login"
+//    val user = FirebaseAuth.getInstance().currentUser
+//    val start = if(user != null) "Bottom" else "login"
 
 
     NavHost(
         navController = navController,
-        startDestination = start
+        startDestination = "SplashScreen"
     ) {
-//        composable("StartScreen") {
-//            StartScreen(navController)
-//        }
-
             composable("SplashScreen") {
                 SplashScreen(navController)
             }
@@ -58,6 +55,17 @@ fun NavGraph(navController: NavHostController) {
         composable("Home") {
             HomeScreen(navController)
         }
+
+        composable("ChatScreen") {
+            ChatScreen(
+                onBackClick = {
+                    // Handle back navigation here
+                    navController.popBackStack()  // goes back to previous screen
+                }
+            )
+        }
+
+
 
         composable("Profile") {
             ProfileScreen(navController)
