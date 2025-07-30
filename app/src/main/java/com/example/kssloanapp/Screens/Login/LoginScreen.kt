@@ -17,7 +17,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.kssloanapp.Models.Users
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
@@ -27,40 +26,17 @@ fun LoginScreen(navController: NavController) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
-    val context = LocalContext.current
-    val auth = FirebaseAuth.getInstance()
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFFEEF2F3), Color(0xFF8E9EAB))
-                )
-            ),
         contentAlignment = Alignment.Center
     ) {
         Card(
-            modifier = Modifier
-                .padding(24.dp)
-                .fillMaxWidth(0.9f),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(8.dp)
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Welcome Back!",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2C3E50)
-                )
 
                 OutlinedTextField(
                     value = email,
@@ -68,10 +44,8 @@ fun LoginScreen(navController: NavController) {
                         email = it
                         errorMessage = null
                     },
-                    label = { Text("Email") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
                 )
 
                 OutlinedTextField(
@@ -80,11 +54,8 @@ fun LoginScreen(navController: NavController) {
                         password = it
                         errorMessage = null
                     },
-                    label = { Text("Password") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    visualTransformation = PasswordVisualTransformation()
                 )
 
                 Button(
@@ -107,46 +78,16 @@ fun LoginScreen(navController: NavController) {
                                 }
                             }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(12.dp),
                     enabled = !isLoading,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C3E50))
                 ) {
                     Text(
-                        text = if (isLoading) "Logging in..." else "Log In",
-                        color = Color.White,
-                        fontSize = 16.sp
                     )
 
                 }
                     if (isLoading) {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                     }
-
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Don't have an account? Sign up",
-                    color = Color(0xFF1976D2),
-                    fontSize = 14.sp,
-                    modifier = Modifier.clickable {
-                        navController.navigate("SignupScreen")
-                    }
-                )
-
-                errorMessage?.let {
-                    Text(
-                        text = it,
-                        color = Color.Red,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
                 }
             }
         }
     }
-}
-

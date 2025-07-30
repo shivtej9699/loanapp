@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
     implementation(libs.firebase.database)
+    implementation(libs.firebase.firestore)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -82,6 +83,19 @@ dependencies {
         // Firebase dependencies
 //        implementation("com.google.firebase:firebase-bom:32.7.0")
 //        implementation("com.google.firebase:firebase-analytics")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
+    implementation("com.google.firebase:firebase-firestore-ktx:25.0.0")
+    implementation("com.google.firebase:firebase-analytics-ktx")
+
+        // Firebase dependencies
+        implementation("com.google.firebase:firebase-bom:32.7.0")
+        implementation("com.google.firebase:firebase-analytics")
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("com.google.firebase:firebase-storage-ktx:20.3.0")
 //        implementation("com.google.firebase:firebase-auth")
 //        implementation("com.google.firebase:firebase-firestore")
 //        implementation("com.google.firebase:firebase-messaging") // For FCM

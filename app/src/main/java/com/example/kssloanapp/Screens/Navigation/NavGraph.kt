@@ -1,81 +1,107 @@
 package com.example.kssloanapp.Screens.Navigation
 
-
 import SignUpScreen
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.kssloanapp.Screens.ChatBot.ChatScreen
+import com.example.kssloanapp.Screens.FromStatus.EMIRepaymentScreen
+import com.example.kssloanapp.Screens.FromStatus.LoanStatusScreen
 import com.example.kssloanapp.Screens.Home.HomeScreen
 import com.example.kssloanapp.Screens.Login.LoginScreen
-import com.example.kssloanapp.Screens.Login.WelcomeScreen
+import com.example.kssloanapp.Screens.Loan.*
 import com.example.kssloanapp.Screens.Profile.ProfileScreen
-////import androidx.navigation.navArgument
-////import com.example.ecomm.Screens.CartSystem.CartScreen
-////import com.example.ecomm.Screens.Home.HomeScreen
-//import com.example.ecomm.Screens.LoginIn.LoginScreen
-//import com.example.ecomm.Screens.Product.ProductDetailScreen
-//import com.example.ecomm.Screens.Profile.ProfileScreen
-//import com.example.ecomm.Screens.SignIN.SignInScreen
+import com.example.kssloanapp.Screens.Start.WelcomeScreen
+import com.example.kssloanapp.Screens.Splash.SplashScreen
 import com.google.firebase.auth.FirebaseAuth
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NavGraph(navController: NavHostController) {
 
+//    val user = FirebaseAuth.getInstance().currentUser
+//    val start = if(user != null) "Bottom" else "login"
 
-    val user = FirebaseAuth.getInstance().currentUser
-//
-//    val start = if (user != null) "bottomNav" else "login"
 
     NavHost(
-        navController = navController, startDestination = "WelcomeScreen"
-
+        navController = navController,
+        startDestination = "SplashScreen"
     ) {
+            composable("SplashScreen") {
+                SplashScreen(navController)
+            }
+
         composable("WelcomeScreen") {
             WelcomeScreen(navController)
         }
 
-        composable("login")
-        {
+        composable("login") {
             LoginScreen(navController)
         }
-        composable("SignupScreen"){
+
+        composable("SignupScreen") {
             SignUpScreen(navController)
         }
-        composable("Bottom"){
+
+        composable("Bottom") {
             BottomNav(navController)
         }
-        composable("Home"){
+
+        composable("Home") {
             HomeScreen(navController)
         }
-        composable("Profile"){
+
+        composable("ChatScreen") {
+            ChatScreen(
+                onBackClick = {
+                    // Handle back navigation here
+                    navController.popBackStack()  // goes back to previous screen
+                }
+            )
+        }
+
+
+
+        composable("Profile") {
             ProfileScreen(navController)
         }
-//        composable("cart"){
-//            CartScreen()
-//        }
-//
-//        composable("product/{name}/{description}/{price}",
-//            arguments = listOf(
-//                navArgument("name") {type = NavType.StringType},
-//                navArgument("description") {type = NavType.StringType},
-//                navArgument("price") {type = NavType.StringType}
-//
-//            )
-//        ){ navBackStackEntry ->
-//            ProductDetailScreen(
-//                navController,
-//                productName = navBackStackEntry.arguments?.getString("name") ?: "",
-//                productDescription = navBackStackEntry.arguments?.getString("description") ?: "",
-//                productPrice = navBackStackEntry.arguments?.getString("price") ?: ""
-//
-//            )
 
+        // SelectLoanScreen with bankName passed
+        composable("SelectLoanScreen/{bankName}") { backStackEntry ->
+            val bankName = backStackEntry.arguments?.getString("bankName") ?: "Unknown Bank"
+            SelectLoanScreen(navController = navController, bankName = bankName)
+        }
 
-        //composable("searchBar"){
-        //   HomeScreen(navController)
-        //}
+        // Loan Form screen with dynamic loanType
+        composable(
+            "LoanFormScreen/{loanType}",
+            arguments = listOf(navArgument("loanType") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val loanType = backStackEntry.arguments?.getString("loanType") ?: "Loan"
+            LoanFormScreen(loanType = loanType, navController = navController)
+        }
+
+        // ✅ Corrected: Loan Status screen with loanId
+        composable(
+            route = "loan_status/{loanId}",
+            arguments = listOf(navArgument("loanId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val loanId = backStackEntry.arguments?.getString("loanId") ?: ""
+            LoanStatusScreen(loanId = loanId, navController = navController)
+        }
+
+        composable(
+            route = "emi_repayment/{loanId}",
+            arguments = listOf(navArgument("loanId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val loanId = backStackEntry.arguments?.getString("loanId") ?: ""
+            EMIRepaymentScreen(loanId = loanId, navController = navController)
+        }
 
 
     }
